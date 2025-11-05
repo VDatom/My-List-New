@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARC Components - My Lists</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .truncate-2-lines {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .toast {
+            transition: all 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        /* Print-specific styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+            
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            .print-table th,
+            .print-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            
+            .print-table th {
+                background-color: #f5f5f5;
+                font-weight: bold;
+            }
+        }
+        
+        /* Enhanced stock status styles */
+        .stock-status {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .stock-in-stock {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .stock-low-stock {
+            background-color: #fef9c3;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+        }
+        
+        .stock-out-of-stock {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .stock-discontinued {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* Fixed table column alignment for desktop */
+        .list-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        
+        .list-table th,
+        .list-table td {
+            padding: 12px 8px;
+            vertical-align: middle;
+        }
+        
+        .column-product { width: 28%; }
+        .column-brand { width: 12%; }
+        .column-price { width: 10%; }
+        .column-status { width: 14%; }
+        .column-cart { width: 14%; }
+        .column-actions { width: 12%; }
+        .column-quote-price { width: 12%; }
+        .column-quote-qty { width: 10%; }
+        
+        /* Mobile card styles */
+        .mobile-list-item {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 0;
+        }
+        
+        .mobile-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Hide table on mobile, show cards */
+        @media (max-width: 767px) {
+            .desktop-table {
+                display: none;
+            }
+            .mobile-cards {
+                display: block;
+            }
+        }
+        
+        /* Hide cards on desktop, show table */
+        @media (min-width: 768px) {
+            .desktop-table {
+                display: block;
+            }
+            .mobile-cards {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header - Mobile optimized with compact layout -->
+    <header class="bg-white shadow-sm no-print">
+        <div class="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm sm:text-base">ARC</span>
+                    </div>
+                    <h1 class="text-lg sm:text-xl font-bold text-gray-800">ARC Components</h1>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <div class="relative">
+                        <button id="cart-button" class="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base">
+                            <i class="fas fa-shopping-cart text-xs sm:text-sm"></i>
+                            <span class="hidden sm:inline">Cart</span>
+                            <span id="cart-count" class="bg-blue-800 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                        </button>
+                    </div>
+                    <div class="h-7 w-7 sm:h-8 sm:w-8 bg-gray-300 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content - Responsive padding and layout -->
+    <main class="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <!-- Tabs - Stack on mobile, horizontal on larger screens -->
+        <div class="bg-white rounded-lg shadow-sm mb-4 sm:mb-6 no-print">
+            <div class="flex flex-col sm:flex-row border-b">
+                <button id="products-tab" class="tab-button py-3 sm:py-4 px-4 sm:px-6 font-medium text-gray-700 border-b-2 sm:border-b-0 border-blue-600 text-blue-600 text-sm sm:text-base">Products</button>
+                <button id="lists-tab" class="tab-button py-3 sm:py-4 px-4 sm:px-6 font-medium text-gray-500 flex items-center justify-center sm:justify-start text-sm sm:text-base">
+                    My Lists
+                    <span id="lists-count" class="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Products View -->
+        <div id="products-view" class="view">
+            <div class="mb-4 sm:mb-6">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Product Catalog</h2>
+                <p class="text-gray-600 text-sm sm:text-base">Browse our selection of components and add them to your lists</p>
+            </div>
+            
+            <!-- Product Grid - Responsive columns -->
+            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                <!-- Products will be dynamically rendered here -->
+            </div>
+        </div>
+
+        <!-- My Lists View -->
+        <div id="lists-view" class="view hidden">
+            <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">My Lists</h2>
+                    <p class="text-gray-600 text-sm sm:text-base">Manage your component lists for projects and quotes</p>
+                </div>
+                <button id="create-list-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 w-full sm:w-auto justify-center text-sm sm:text-base">
+                    <i class="fas fa-plus"></i>
+                    <span>Create New List</span>
+                </button>
+            </div>
+            
+            <!-- Lists Container -->
+            <div id="lists-container">
+                <!-- Lists will be dynamically rendered here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Add to List Modal - Responsive sizing and layout -->
+    <div id="add-to-list-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden no-print p-3 sm:p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto slide-in max-h-[90vh] overflow-y-auto">
+            <div class="p-4 sm:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">Add to List</h3>
+                    <button id="close-add-to-list-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="selected-product-details" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <!-- Product details will be populated here -->
+                </div>
+                
+                <div class="mb-4 sm:mb-6">
+                    <h4 class="font-medium text-gray-700 mb-2">Option A: Create New List</h4>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        <input type="text" id="new-list-name" placeholder="Enter list name" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+                        <button id="create-new-list-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm sm:text-base">Create</button>
+                    </div>
+                    <p id="new-list-error" class="text-red-500 text-sm mt-1 hidden">List name is required and must be unique</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-2">Option B: Add to Existing List</h4>
+                    <select id="existing-lists-dropdown" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 text-sm sm:text-base">
+                        <option value="">Select a list</option>
+                    </select>
+                    <button id="add-to-existing-list-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm sm:text-base">Add to List</button>
+                    <p id="existing-list-error" class="text-red-500 text-sm mt-1 hidden">Please select a list and ensure product is not already in it</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal - Responsive sizing -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden no-print p-3 sm:p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto slide-in">
+            <div class="p-4 sm:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="confirmation-title" class="text-lg font-bold text-gray-800">Confirm Action</h3>
+                    <button id="close-confirmation-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <p id="confirmation-message" class="text-gray-700 mb-4 sm:mb-6 text-sm sm:text-base">Are you sure you want to perform this action?</p>
+                
+                <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button id="cancel-confirmation" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm sm:text-base order-2 sm:order-1">Cancel</button>
+                    <button id="confirm-action" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm sm:text-base order-1 sm:order-2">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quote Modal - Responsive sizing and scrolling -->
+    <div id="quote-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden no-print p-3 sm:p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto slide-in">
+            <div class="p-4 sm:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">Request Quote</h3>
+                    <button id="close-quote-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4 sm:mb-6">
+                    <h4 class="font-medium text-gray-700 mb-2">Your Information</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="quote-email" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" value="demo@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                            <input type="tel" id="quote-phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" value="(555) 123-4567">
+                        </div>
+                    </div>
+                    <div class="mb-3 sm:mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                        <input type="text" id="quote-business" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" value="Demo Business Inc.">
+                    </div>
+                    <div class="mb-3 sm:mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Location <span class="text-red-500">*</span></label>
+                        <input type="text" id="quote-location" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" placeholder="Enter delivery location" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Message (Optional)</label>
+                        <textarea id="quote-message" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" rows="3" placeholder="Add any additional information..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="mb-4 sm:mb-6">
+                    <h4 class="font-medium text-gray-700 mb-2">Quote Summary</h4>
+                    <div id="quote-summary" class="bg-gray-50 rounded-lg p-3 sm:p-4">
+                        <!-- Quote items will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button id="cancel-quote" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm sm:text-base order-2 sm:order-1">Cancel</button>
+                    <button id="submit-quote" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2 text-sm sm:text-base order-1 sm:order-2">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Submit Quote Request</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Template (Hidden) -->
+    <div id="print-template" class="hidden print-section">
+        <!-- Print content will be dynamically populated here -->
+    </div>
+
+    <!-- Toast Container - Mobile positioning -->
+    <div id="toast-container" class="fixed top-16 sm:top-4 right-2 sm:right-4 left-2 sm:left-auto z-50 space-y-2 no-print max-w-full sm:max-w-sm">
+        <!-- Toasts will be dynamically added here -->
+    </div>
+
+    <script>
+        // Sample Data
+        const SAMPLE_PRODUCTS = [
+            { id: 'P001', partNumber: 'ARC-001', description: 'High-performance microcontroller with advanced processing capabilities', brand: 'ARC Tech', price: 24.99, inventory: 'In Stock', stockQuantity: 150, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P002', partNumber: 'ARC-002', description: 'Precision voltage regulator for stable power supply', brand: 'ARC Tech', price: 12.50, inventory: 'In Stock', stockQuantity: 200, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P003', partNumber: 'ARC-003', description: 'High-speed data transmission module with low latency', brand: 'ARC Comms', price: 45.00, inventory: 'Low Stock', stockQuantity: 15, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P004', partNumber: 'ARC-004', description: 'Industrial-grade temperature sensor with wide range', brand: 'ARC Sensors', price: 8.75, inventory: 'In Stock', stockQuantity: 300, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P005', partNumber: 'ARC-005', description: 'Compact power supply unit with multiple output options', brand: 'ARC Power', price: 32.99, inventory: 'Out of Stock', stockQuantity: 0, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P006', partNumber: 'ARC-006', description: 'Wireless communication module with extended range', brand: 'ARC Comms', price: 28.50, inventory: 'In Stock', stockQuantity: 75, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P007', partNumber: 'ARC-007', description: 'High-precision analog-to-digital converter', brand: 'ARC Tech', price: null, inventory: 'Discontinued', stockQuantity: 0, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P008', partNumber: 'ARC-008', description: 'Robotic actuator with position feedback', brand: 'ARC Motion', price: 67.25, inventory: 'In Stock', stockQuantity: 40, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P009', partNumber: 'ARC-009', description: 'Multi-channel relay module for industrial control', brand: 'ARC Power', price: 22.99, inventory: 'Low Stock', stockQuantity: 8, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P010', partNumber: 'ARC-010', description: 'Compact display module with touch interface', brand: 'ARC Display', price: 38.75, inventory: 'In Stock', stockQuantity: 120, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P011', partNumber: 'ARC-011', description: 'Environmental sensor for humidity and pressure', brand: 'ARC Sensors', price: 19.99, inventory: 'In Stock', stockQuantity: 90, imageUrl: 'https://via.placeholder.com/150' },
+            { id: 'P012', partNumber: 'ARC-012', description: 'Signal conditioning module with filtering', brand: 'ARC Tech', price: 27.50, inventory: 'In Stock', stockQuantity: 60, imageUrl: 'https://via.placeholder.com/150' }
+        ];
+
+        const DEMO_USER = {
+            email: 'demo@example.com',
+            phone: '(555) 123-4567',
+            businessName: 'Demo Business Inc.'
+        };
+
+        // State Management
+        let lists = JSON.parse(localStorage.getItem('arc-lists')) || [];
+        let simulatedCart = JSON.parse(localStorage.getItem('arc-cart')) || [];
+        let selectedProduct = null;
+        let pendingAction = null;
+
+        // DOM Elements
+        const productsView = document.getElementById('products-view');
+        const listsView = document.getElementById('lists-view');
+        const productsGrid = document.getElementById('products-grid');
+        const listsContainer = document.getElementById('lists-container');
+        const addToListModal = document.getElementById('add-to-list-modal');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const quoteModal = document.getElementById('quote-modal');
+        const toastContainer = document.getElementById('toast-container');
+        const cartCount = document.getElementById('cart-count');
+        const listsCount = document.getElementById('lists-count');
+        const printTemplate = document.getElementById('print-template');
+
+        // Initialize the application
+        function init() {
+            renderProducts();
+            renderLists();
+            updateCartCount();
+            updateListsCount();
+            setupEventListeners();
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Tab switching
+            document.getElementById('products-tab').addEventListener('click', () => switchView('products'));
+            document.getElementById('lists-tab').addEventListener('click', () => switchView('lists'));
+            
+            // Create list button
+            document.getElementById('create-list-btn').addEventListener('click', createNewList);
+            
+            // Modal close buttons
+            document.getElementById('close-add-to-list-modal').addEventListener('click', () => addToListModal.classList.add('hidden'));
+            document.getElementById('close-confirmation-modal').addEventListener('click', () => confirmationModal.classList.add('hidden'));
+            document.getElementById('close-quote-modal').addEventListener('click', () => quoteModal.classList.add('hidden'));
+            
+            // Confirmation modal buttons
+            document.getElementById('cancel-confirmation').addEventListener('click', () => confirmationModal.classList.add('hidden'));
+            document.getElementById('confirm-action').addEventListener('click', executePendingAction);
+            
+            // Add to list modal buttons
+            document.getElementById('create-new-list-btn').addEventListener('click', handleCreateNewList);
+            document.getElementById('add-to-existing-list-btn').addEventListener('click', handleAddToExistingList);
+            
+            // Quote modal buttons
+            document.getElementById('cancel-quote').addEventListener('click', () => quoteModal.classList.add('hidden'));
+            document.getElementById('submit-quote').addEventListener('click', submitQuote);
+            
+            // Cart button
+            document.getElementById('cart-button').addEventListener('click', () => {
+                showToast('Cart functionality would be implemented here', 'info');
+            });
+        }
+
+        // View Switching
+        function switchView(view) {
+            if (view === 'products') {
+                productsView.classList.remove('hidden');
+                listsView.classList.add('hidden');
+                document.getElementById('products-tab').classList.add('border-blue-600', 'text-blue-600');
+                document.getElementById('products-tab').classList.remove('text-gray-500');
+                document.getElementById('lists-tab').classList.remove('border-blue-600', 'text-blue-600');
+                document.getElementById('lists-tab').classList.add('text-gray-500');
+            } else {
+                productsView.classList.add('hidden');
+                listsView.classList.remove('hidden');
+                document.getElementById('lists-tab').classList.add('border-blue-600', 'text-blue-600');
+                document.getElementById('lists-tab').classList.remove('text-gray-500');
+                document.getElementById('products-tab').classList.remove('border-blue-600', 'text-blue-600');
+                document.getElementById('products-tab').classList.add('text-gray-500');
+                renderLists();
+            }
+        }
+
+        // Enhanced stock status display function
+        function getStockStatusDisplay(inventoryStatus, stockQuantity) {
+            const statusIcons = {
+                'In Stock': 'fa-check-circle',
+                'Low Stock': 'fa-exclamation-triangle',
+                'Out of Stock': 'fa-times-circle',
+                'Discontinued': 'fa-ban'
+            };
+            
+            const statusClasses = {
+                'In Stock': 'stock-status stock-in-stock',
+                'Low Stock': 'stock-status stock-low-stock',
+                'Out of Stock': 'stock-status stock-out-of-stock',
+                'Discontinued': 'stock-status stock-discontinued'
+            };
+            
+            const icon = statusIcons[inventoryStatus] || 'fa-question-circle';
+            const className = statusClasses[inventoryStatus] || 'stock-status stock-discontinued';
+            
+            return `
+                <div class="${className}">
+                    <i class="fas ${icon} text-xs"></i>
+                    <span>${inventoryStatus}</span>
+                    ${inventoryStatus !== 'Discontinued' ? `<span class="font-normal">(${stockQuantity})</span>` : ''}
+                </div>
+            `;
+        }
+
+        // Product Rendering - Responsive product cards with enhanced stock status
+        function renderProducts() {
+            productsGrid.innerHTML = '';
+            
+            SAMPLE_PRODUCTS.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden fade-in';
+                
+                const stockStatusDisplay = getStockStatusDisplay(product.inventory, product.stockQuantity);
+                
+                productCard.innerHTML = `
+                    <div class="p-3 sm:p-4">
+                        <div class="flex justify-between items-start mb-2 sm:mb-3">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <img src="${product.imageUrl}" alt="${product.partNumber}" class="w-full h-full object-cover rounded-lg">
+                            </div>
+                            <div class="text-right">
+                                ${stockStatusDisplay}
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-gray-800 text-sm sm:text-base">${product.partNumber}</h3>
+                        <p class="text-gray-600 text-xs sm:text-sm mt-1 truncate-2-lines">${product.description}</p>
+                        <div class="flex justify-between items-center mt-2 sm:mt-3">
+                            <span class="font-medium text-gray-800 text-sm sm:text-base">${product.price ? '$' + product.price.toFixed(2) : 'Price N/A'}</span>
+                            <button class="add-to-list-btn bg-blue-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-lg text-xs sm:text-sm flex items-center space-x-1">
+                                <i class="fas fa-plus text-xs"></i>
+                                <span class="hidden xs:inline">Add to List</span>
+                                <span class="xs:hidden">Add</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listener to the button
+                const addButton = productCard.querySelector('.add-to-list-btn');
+                addButton.addEventListener('click', function() {
+                    const productId = product.id;
+                    openAddToListModal(productId);
+                });
+                
+                productsGrid.appendChild(productCard);
+            });
+        }
+
+        // Lists Rendering - Table for desktop, cards for mobile
+        function renderLists() {
+            listsContainer.innerHTML = '';
+            
+            if (lists.length === 0) {
+                listsContainer.innerHTML = `
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 text-center">
+                        <i class="fas fa-clipboard-list text-3xl sm:text-4xl text-gray-300 mb-3 sm:mb-4"></i>
+                        <h3 class="text-base sm:text-lg font-medium text-gray-700 mb-2">No Lists Yet</h3>
+                        <p class="text-gray-500 text-sm sm:text-base mb-4">Create your first list to organize components for your projects</p>
+                        <button id="create-first-list" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm sm:text-base">Create Your First List</button>
+                    </div>
+                `;
+                
+                document.getElementById('create-first-list').addEventListener('click', createNewList);
+                return;
+            }
+            
+            lists.forEach((list, index) => {
+                const listElement = document.createElement('div');
+                listElement.className = 'bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6 fade-in';
+                
+                const hasPurchasableItems = list.items.some(item => {
+                    const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                    return product && product.price && product.inventory !== 'Out of Stock' && product.inventory !== 'Discontinued';
+                });
+                
+                const allPurchasableInCart = hasPurchasableItems && list.items.every(item => {
+                    const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                    return !product || !product.price || product.inventory === 'Out of Stock' || product.inventory === 'Discontinued' || simulatedCart.includes(item.productId);
+                });
+                
+                const showSendQuoteButton = list.items.length > 0;
+                
+                listElement.innerHTML = `
+                    <div class="p-3 sm:p-4 border-b border-gray-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                <h3 class="list-name text-base sm:text-lg font-bold text-gray-800 flex-1 sm:flex-none" contenteditable="true" data-list-id="${list.id}">${list.name}</h3>
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">${list.items.length} items</span>
+                            </div>
+                            <div class="flex space-x-1 sm:space-x-2 w-full sm:w-auto justify-between sm:justify-start">
+                                <button class="duplicate-list-btn text-gray-500 hover:text-blue-600 p-1.5 sm:p-2 rounded-lg text-sm" data-list-id="${list.id}" title="Duplicate List">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="print-list-btn text-gray-500 hover:text-blue-600 p-1.5 sm:p-2 rounded-lg text-sm" data-list-id="${list.id}" title="Print List">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <button class="export-list-btn text-gray-500 hover:text-blue-600 p-1.5 sm:p-2 rounded-lg text-sm" data-list-id="${list.id}" title="Export CSV">
+                                    <i class="fas fa-file-csv"></i>
+                                </button>
+                                <button class="delete-list-btn text-gray-500 hover:text-red-600 p-1.5 sm:p-2 rounded-lg text-sm" data-list-id="${list.id}" title="Delete List">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 sm:p-4">
+                        ${list.items.length === 0 ? `
+                            <div class="text-center py-6 sm:py-8 text-gray-500">
+                                <i class="fas fa-box-open text-2xl sm:text-3xl mb-2 sm:mb-3"></i>
+                                <p class="text-sm sm:text-base">This list is empty. Add some components to get started.</p>
+                            </div>
+                        ` : `
+                            <!-- Desktop Table View -->
+                            <div class="desktop-table overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
+                                <table class="list-table">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-product">Product</th>
+                                            <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-brand">Brand</th>
+                                            <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-price">Price</th>
+                                            <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-status">Status</th>
+                                            <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-cart">Cart</th>
+                                            ${list.isQuoteMode ? `
+                                                <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-quote-price">Target Price</th>
+                                                <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-quote-qty">Qty</th>
+                                            ` : `
+                                                <th class="text-left py-3 text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap column-actions">Actions</th>
+                                            `}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${list.items.map(item => {
+                                            const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                                            if (!product) return '';
+                                            
+                                            const stockStatusDisplay = getStockStatusDisplay(product.inventory, product.stockQuantity);
+                                            const isInCart = simulatedCart.includes(item.productId);
+                                            const isPurchasable = product.price && product.inventory !== 'Out of Stock' && product.inventory !== 'Discontinued';
+                                            
+                                            return `
+                                                <tr class="border-b border-gray-100">
+                                                    <td class="py-3 column-product">
+                                                        <div class="flex items-center space-x-3">
+                                                            <div class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+                                                                <img src="${product.imageUrl}" alt="${product.partNumber}" class="w-full h-full object-cover rounded">
+                                                            </div>
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="font-medium text-gray-800 text-sm">${product.partNumber}</div>
+                                                                <div class="text-gray-500 text-xs truncate">${product.description}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-3 text-gray-600 text-sm column-brand">${product.brand}</td>
+                                                    <td class="py-3 text-gray-600 text-sm whitespace-nowrap column-price">${product.price ? '$' + product.price.toFixed(2) : 'N/A'}</td>
+                                                    <td class="py-3 column-status">
+                                                        ${stockStatusDisplay}
+                                                    </td>
+                                                    <td class="py-3 column-cart">
+                                                        ${isPurchasable ? (
+                                                            isInCart ? 
+                                                            '<span class="text-green-600 text-sm font-medium flex items-center"><i class="fas fa-check mr-1"></i> In Cart</span>' : 
+                                                            `<button class="move-to-cart-btn text-blue-600 hover:text-blue-800 text-sm flex items-center" data-list-id="${list.id}" data-item-id="${item.productId}">
+                                                                <i class="fas fa-shopping-cart mr-1"></i> Move to Cart
+                                                            </button>`
+                                                        ) : '<span class="text-gray-400 text-sm">Not Purchasable</span>'}
+                                                    </td>
+                                                    ${list.isQuoteMode ? `
+                                                        <td class="py-3 column-quote-price">
+                                                            <input type="number" step="0.01" min="0.01" class="target-price-input border border-gray-300 rounded px-2 py-1 w-full text-sm" data-list-id="${list.id}" data-item-id="${item.productId}" value="${item.targetPrice || ''}" placeholder="$0.00">
+                                                            <div class="target-price-error text-red-500 text-xs mt-1 hidden">Must be > $0</div>
+                                                        </td>
+                                                        <td class="py-3 column-quote-qty">
+                                                            <input type="number" min="1" class="required-quantity-input border border-gray-300 rounded px-2 py-1 w-full text-sm" data-list-id="${list.id}" data-item-id="${item.productId}" value="${item.requiredQuantity || ''}" placeholder="Qty">
+                                                            <div class="required-quantity-error text-red-500 text-xs mt-1 hidden">Must be > 0</div>
+                                                        </td>
+                                                    ` : `
+                                                        <td class="py-3 column-actions">
+                                                            <button class="remove-item-btn text-red-600 hover:text-red-800 text-sm flex items-center" data-list-id="${list.id}" data-item-id="${item.productId}">
+                                                                <i class="fas fa-times mr-1"></i> Remove
+                                                            </button>
+                                                        </td>
+                                                    `}
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Mobile Card View -->
+                            <div class="mobile-cards">
+                                ${list.items.map(item => {
+                                    const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                                    if (!product) return '';
+                                    
+                                    const stockStatusDisplay = getStockStatusDisplay(product.inventory, product.stockQuantity);
+                                    const isInCart = simulatedCart.includes(item.productId);
+                                    const isPurchasable = product.price && product.inventory !== 'Out of Stock' && product.inventory !== 'Discontinued';
+                                    
+                                    return `
+                                        <div class="mobile-list-item">
+                                            <div class="flex items-start space-x-3">
+                                                <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+                                                    <img src="${product.imageUrl}" alt="${product.partNumber}" class="w-full h-full object-cover rounded">
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex justify-between items-start">
+                                                        <div class="min-w-0 flex-1">
+                                                            <h4 class="font-bold text-gray-800 text-sm truncate">${product.partNumber}</h4>
+                                                            <p class="text-gray-600 text-xs mt-1 truncate-2-lines">${product.description}</p>
+                                                        </div>
+                                                        <div class="ml-2 flex-shrink-0">
+                                                            ${stockStatusDisplay}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                                        <span class="text-gray-700 font-medium">${product.brand}</span>
+                                                        <span class="text-gray-700">${product.price ? '$' + product.price.toFixed(2) : 'Price N/A'}</span>
+                                                    </div>
+                                                    
+                                                    <div class="mt-3 flex justify-between items-center">
+                                                        <div>
+                                                            ${isPurchasable ? (
+                                                                isInCart ? 
+                                                                '<span class="text-green-600 text-xs font-medium flex items-center"><i class="fas fa-check mr-1"></i> In Cart</span>' : 
+                                                                `<button class="move-to-cart-btn text-blue-600 hover:text-blue-800 text-xs flex items-center" data-list-id="${list.id}" data-item-id="${item.productId}">
+                                                                    <i class="fas fa-shopping-cart mr-1"></i> Move to Cart
+                                                                </button>`
+                                                            ) : '<span class="text-gray-400 text-xs">Not Purchasable</span>'}
+                                                        </div>
+                                                        <div>
+                                                            ${list.isQuoteMode ? `
+                                                                <div class="flex space-x-2">
+                                                                    <div>
+                                                                        <input type="number" step="0.01" min="0.01" class="target-price-input border border-gray-300 rounded px-2 py-1 w-20 text-xs" data-list-id="${list.id}" data-item-id="${item.productId}" value="${item.targetPrice || ''}" placeholder="$0.00">
+                                                                        <div class="target-price-error text-red-500 text-xs mt-1 hidden">Must be > $0</div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <input type="number" min="1" class="required-quantity-input border border-gray-300 rounded px-2 py-1 w-16 text-xs" data-list-id="${list.id}" data-item-id="${item.productId}" value="${item.requiredQuantity || ''}" placeholder="Qty">
+                                                                        <div class="required-quantity-error text-red-500 text-xs mt-1 hidden">Must be > 0</div>
+                                                                    </div>
+                                                                </div>
+                                                            ` : `
+                                                                <button class="remove-item-btn text-red-600 hover:text-red-800 text-xs flex items-center" data-list-id="${list.id}" data-item-id="${item.productId}">
+                                                                    <i class="fas fa-times mr-1"></i> Remove
+                                                                </button>
+                                                            `}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `}
+                    </div>
+                    <div class="p-3 sm:p-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+                            <div>
+                                ${list.isQuoteMode ? `
+                                    <button class="back-to-list-btn bg-gray-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base w-full sm:w-auto justify-center">
+                                        <i class="fas fa-arrow-left"></i>
+                                        <span>Back to List</span>
+                                    </button>
+                                ` : `
+                                    ${hasPurchasableItems ? (
+                                        allPurchasableInCart ? 
+                                        '<span class="text-green-600 font-medium flex items-center text-sm sm:text-base justify-center sm:justify-start"><i class="fas fa-check mr-2"></i> All Items In Cart</span>' : 
+                                        ''
+                                    ) : ''}
+                                `}
+                            </div>
+                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                                ${list.isQuoteMode ? `
+                                    <button class="submit-quote-btn bg-green-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base justify-center">
+                                        <i class="fas fa-check"></i>
+                                        <span>Submit Quote</span>
+                                    </button>
+                                ` : `
+                                    ${hasPurchasableItems && !allPurchasableInCart ? `
+                                        <button class="move-list-to-cart-btn bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base justify-center" data-list-id="${list.id}">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            <span>Move List to Cart</span>
+                                        </button>
+                                    ` : ''}
+                                    ${allPurchasableInCart ? `
+                                        <button class="checkout-now-btn bg-green-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base justify-center" data-list-id="${list.id}">
+                                            <i class="fas fa-credit-card"></i>
+                                            <span>Checkout Now</span>
+                                        </button>
+                                    ` : ''}
+                                    ${showSendQuoteButton ? `
+                                        <button class="send-quote-btn bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base justify-center" data-list-id="${list.id}">
+                                            <i class="fas fa-comment"></i>
+                                            <span>Send Quote</span>
+                                        </button>
+                                    ` : ''}
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                listsContainer.appendChild(listElement);
+            });
+            
+            // Add event listeners to list elements
+            setupListEventListeners();
+        }
+
+        // Setup List Event Listeners
+        function setupListEventListeners() {
+            // List name editing
+            document.querySelectorAll('.list-name').forEach(element => {
+                element.addEventListener('blur', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    const newName = this.textContent.trim();
+                    updateListName(listId, newName);
+                });
+                
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur();
+                    }
+                });
+            });
+            
+            // Duplicate list
+            document.querySelectorAll('.duplicate-list-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    duplicateList(listId);
+                });
+            });
+            
+            // Print list
+            document.querySelectorAll('.print-list-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    printList(listId);
+                });
+            });
+            
+            // Export list
+            document.querySelectorAll('.export-list-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    exportListToCSV(listId);
+                });
+            });
+            
+            // Delete list
+            document.querySelectorAll('.delete-list-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    showConfirmationModal(
+                        'Delete List',
+                        'Are you sure you want to delete this list? This action cannot be undone.',
+                        () => deleteList(listId)
+                    );
+                });
+            });
+            
+            // Move item to cart
+            document.querySelectorAll('.move-to-cart-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    const itemId = this.getAttribute('data-item-id');
+                    moveItemToCart(listId, itemId);
+                });
+            });
+            
+            // Remove item from list
+            document.querySelectorAll('.remove-item-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    const itemId = this.getAttribute('data-item-id');
+                    showConfirmationModal(
+                        'Remove Item',
+                        'Are you sure you want to remove this item from the list?',
+                        () => removeItemFromList(listId, itemId)
+                    );
+                });
+            });
+            
+            // Move entire list to cart
+            document.querySelectorAll('.move-list-to-cart-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    moveFullListToCart(listId);
+                });
+            });
+            
+            // Checkout now
+            document.querySelectorAll('.checkout-now-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    checkoutNow(listId);
+                });
+            });
+            
+            // Send quote (toggle quote mode)
+            document.querySelectorAll('.send-quote-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    toggleQuoteMode(listId, true);
+                });
+            });
+            
+            // Back to list (toggle quote mode off)
+            document.querySelectorAll('.back-to-list-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listElement = this.closest('.bg-white');
+                    const listId = listElement.querySelector('.list-name').getAttribute('data-list-id');
+                    toggleQuoteMode(listId, false);
+                });
+            });
+            
+            // Submit quote
+            document.querySelectorAll('.submit-quote-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const listElement = this.closest('.bg-white');
+                    const listId = listElement.querySelector('.list-name').getAttribute('data-list-id');
+                    validateAndOpenQuoteModal(listId);
+                });
+            });
+            
+            // Quote mode input validation
+            document.querySelectorAll('.target-price-input, .required-quantity-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const listId = this.getAttribute('data-list-id');
+                    const itemId = this.getAttribute('data-item-id');
+                    const value = this.value;
+                    
+                    if (this.classList.contains('target-price-input')) {
+                        updateItemTargetPrice(listId, itemId, value);
+                    } else if (this.classList.contains('required-quantity-input')) {
+                        updateItemRequiredQuantity(listId, itemId, value);
+                    }
+                });
+            });
+        }
+
+        // Add to List Modal
+        function openAddToListModal(productId) {
+            selectedProduct = SAMPLE_PRODUCTS.find(p => p.id === productId);
+            
+            if (!selectedProduct) return;
+            
+            // Populate product details
+            const productDetails = document.getElementById('selected-product-details');
+            const stockStatusDisplay = getStockStatusDisplay(selectedProduct.inventory, selectedProduct.stockQuantity);
+            
+            productDetails.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <img src="${selectedProduct.imageUrl}" alt="${selectedProduct.partNumber}" class="w-full h-full object-cover rounded-lg">
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-gray-800 text-sm sm:text-base truncate">${selectedProduct.partNumber}</h4>
+                        <p class="text-gray-600 text-xs sm:text-sm truncate">${selectedProduct.description}</p>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <span class="text-sm font-medium text-gray-800">${selectedProduct.price ? '$' + selectedProduct.price.toFixed(2) : 'Price N/A'}</span>
+                            ${stockStatusDisplay}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Populate existing lists dropdown
+            const dropdown = document.getElementById('existing-lists-dropdown');
+            dropdown.innerHTML = '<option value="">Select a list</option>';
+            
+            lists.forEach(list => {
+                const option = document.createElement('option');
+                option.value = list.id;
+                option.textContent = list.name;
+                dropdown.appendChild(option);
+            });
+            
+            // Reset errors
+            document.getElementById('new-list-error').classList.add('hidden');
+            document.getElementById('existing-list-error').classList.add('hidden');
+            document.getElementById('new-list-name').value = '';
+            dropdown.value = '';
+            
+            // Show modal
+            addToListModal.classList.remove('hidden');
+        }
+
+        function handleCreateNewList() {
+            const newListName = document.getElementById('new-list-name').value.trim();
+            const errorElement = document.getElementById('new-list-error');
+            
+            if (!newListName) {
+                errorElement.textContent = 'List name is required';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            if (lists.some(list => list.name === newListName)) {
+                errorElement.textContent = 'List name must be unique';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            const newList = {
+                id: generateId(),
+                name: newListName,
+                items: [],
+                isQuoteMode: false
+            };
+            
+            lists.push(newList);
+            saveLists();
+            
+            // Add the selected product to the new list
+            addProductToList(newList.id, selectedProduct.id);
+            
+            // Close modal and show success message
+            addToListModal.classList.add('hidden');
+            showToast(`Created "${newListName}" and added ${selectedProduct.partNumber}`, 'success');
+            
+            // Switch to lists view
+            switchView('lists');
+        }
+
+        function handleAddToExistingList() {
+            const listId = document.getElementById('existing-lists-dropdown').value;
+            const errorElement = document.getElementById('existing-list-error');
+            
+            if (!listId) {
+                errorElement.textContent = 'Please select a list';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            const list = lists.find(l => l.id === listId);
+            
+            if (list.items.some(item => item.productId === selectedProduct.id)) {
+                errorElement.textContent = 'This product is already in the selected list';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            addProductToList(listId, selectedProduct.id);
+            
+            // Close modal and show success message
+            addToListModal.classList.add('hidden');
+            showToast(`Added ${selectedProduct.partNumber} to "${list.name}"`, 'success');
+        }
+
+        // List Management Functions
+        function createNewList() {
+            const newListName = `New List ${lists.length + 1}`;
+            const newList = {
+                id: generateId(),
+                name: newListName,
+                items: [],
+                isQuoteMode: false
+            };
+            
+            lists.push(newList);
+            saveLists();
+            renderLists();
+            updateListsCount();
+            showToast(`Created "${newListName}"`, 'success');
+            
+            // Focus on the new list name for editing
+            setTimeout(() => {
+                const newListElement = document.querySelector(`[data-list-id="${newList.id}"]`);
+                if (newListElement) {
+                    newListElement.focus();
+                    // Select all text for easy replacement
+                    const range = document.createRange();
+                    range.selectNodeContents(newListElement);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }, 100);
+        }
+
+        function updateListName(listId, newName) {
+            if (!newName) {
+                showToast('List name cannot be empty', 'error');
+                renderLists(); // Re-render to reset the name
+                return;
+            }
+            
+            if (lists.some(list => list.id !== listId && list.name === newName)) {
+                showToast('List name must be unique', 'error');
+                renderLists(); // Re-render to reset the name
+                return;
+            }
+            
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                list.name = newName;
+                saveLists();
+                showToast('List name updated', 'success');
+            }
+        }
+
+        function addProductToList(listId, productId) {
+            const list = lists.find(l => l.id === listId);
+            if (list && !list.items.some(item => item.productId === productId)) {
+                list.items.push({
+                    productId: productId,
+                    targetPrice: null,
+                    requiredQuantity: null
+                });
+                saveLists();
+                renderLists();
+                updateListsCount();
+            }
+        }
+
+        function removeItemFromList(listId, itemId) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                list.items = list.items.filter(item => item.productId !== itemId);
+                saveLists();
+                renderLists();
+                updateListsCount();
+                showToast('Item removed from list', 'success');
+            }
+        }
+
+        function deleteList(listId) {
+            lists = lists.filter(list => list.id !== listId);
+            saveLists();
+            renderLists();
+            updateListsCount();
+            showToast('List deleted', 'success');
+            confirmationModal.classList.add('hidden');
+        }
+
+        function duplicateList(listId) {
+            const originalList = lists.find(l => l.id === listId);
+            if (originalList) {
+                const duplicatedList = {
+                    id: generateId(),
+                    name: `${originalList.name} (Copy)`,
+                    items: [...originalList.items],
+                    isQuoteMode: false
+                };
+                
+                lists.push(duplicatedList);
+                saveLists();
+                renderLists();
+                updateListsCount();
+                showToast('List duplicated', 'success');
+            }
+        }
+
+        // PRINT FUNCTIONALITY
+        function printList(listId) {
+            const list = lists.find(l => l.id === listId);
+            if (!list) return;
+            
+            // Calculate total value
+            let totalValue = 0;
+            list.items.forEach(item => {
+                const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                if (product && product.price) {
+                    totalValue += product.price;
+                }
+            });
+            
+            // Prepare print content
+            let printContent = `
+                <div class="p-8">
+                    <div class="text-center mb-6">
+                        <h1 class="text-2xl font-bold text-gray-800">ARC Components</h1>
+                        <h2 class="text-xl text-gray-600 mt-2">List: ${list.name}</h2>
+                        <p class="text-gray-500 mt-1">Printed on ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>Item No</th>
+                                <th>Part Number</th>
+                                <th>Description</th>
+                                <th>Brand</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            list.items.forEach((item, index) => {
+                const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                if (product) {
+                    printContent += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${product.partNumber}</td>
+                            <td>${product.description}</td>
+                            <td>${product.brand}</td>
+                            <td>${product.price ? '$' + product.price.toFixed(2) : 'N/A'}</td>
+                            <td>${product.inventory} (${product.stockQuantity})</td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            printContent += `
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-right font-bold">Total Value:</td>
+                                <td class="font-bold">$${totalValue.toFixed(2)}</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-right">Total Items:</td>
+                                <td>${list.items.length}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+            
+            // Set print template content
+            printTemplate.innerHTML = printContent;
+            
+            // Trigger print
+            window.print();
+            
+            showToast('List sent to printer', 'success');
+        }
+
+        // CSV EXPORT FUNCTIONALITY
+        function exportListToCSV(listId) {
+            const list = lists.find(l => l.id === listId);
+            if (!list) return;
+            
+            // Calculate total value
+            let totalValue = 0;
+            
+            // Create CSV header
+            let csvContent = "Item No,Part Number,Description,Brand,Price,Inventory Status,Stock Quantity\n";
+            
+            // Add each item as a row
+            list.items.forEach((item, index) => {
+                const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                if (product) {
+                    if (product.price) {
+                        totalValue += product.price;
+                    }
+                    
+                    const row = [
+                        `"${index + 1}"`,
+                        `"${product.partNumber}"`,
+                        `"${product.description}"`,
+                        `"${product.brand}"`,
+                        product.price ? `"$${product.price.toFixed(2)}"` : '"N/A"',
+                        `"${product.inventory}"`,
+                        `"${product.stockQuantity}"`
+                    ].join(',');
+                    
+                    csvContent += row + '\n';
+                }
+            });
+            
+            // Add total row
+            csvContent += `\n"","","","Total Value","$${totalValue.toFixed(2)}","",""\n`;
+            csvContent += `"","","","Total Items","${list.items.length}","",""`;
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${list.name.replace(/\s+/g, '_')}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast(`List exported as ${list.name}.csv`, 'success');
+        }
+
+        // Cart Functions
+        function moveItemToCart(listId, itemId) {
+            if (!simulatedCart.includes(itemId)) {
+                simulatedCart.push(itemId);
+                saveCart();
+                updateCartCount();
+                renderLists();
+                showToast('Item moved to cart', 'success');
+            }
+        }
+
+        function moveFullListToCart(listId) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                let addedCount = 0;
+                
+                list.items.forEach(item => {
+                    const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                    if (product && product.price && product.inventory !== 'Out of Stock' && product.inventory !== 'Discontinued' && !simulatedCart.includes(item.productId)) {
+                        simulatedCart.push(item.productId);
+                        addedCount++;
+                    }
+                });
+                
+                if (addedCount > 0) {
+                    saveCart();
+                    updateCartCount();
+                    renderLists();
+                    showToast(`Added ${addedCount} items to cart`, 'success');
+                } else {
+                    showToast('All purchasable items are already in the cart', 'info');
+                }
+            }
+        }
+
+        function checkoutNow(listId) {
+            showToast('Proceeding to checkout with all items from this list', 'success');
+            // In a real implementation, this would redirect to a checkout page
+        }
+
+        function updateCartCount() {
+            cartCount.textContent = simulatedCart.length;
+        }
+
+        function updateListsCount() {
+            listsCount.textContent = lists.length;
+        }
+
+        // Quote Functions
+        function toggleQuoteMode(listId, enable) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                list.isQuoteMode = enable;
+                saveLists();
+                renderLists();
+                
+                if (enable) {
+                    showToast('Quote mode activated. Fill in target prices and quantities.', 'info');
+                }
+            }
+        }
+
+        function updateItemTargetPrice(listId, itemId, targetPrice) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                const item = list.items.find(i => i.productId === itemId);
+                if (item) {
+                    item.targetPrice = parseFloat(targetPrice) || null;
+                    saveLists();
+                    
+                    // Validate and show/hide error
+                    const errorElement = document.querySelector(`.target-price-input[data-list-id="${listId}"][data-item-id="${itemId}"]`).nextElementSibling;
+                    if (targetPrice && parseFloat(targetPrice) > 0) {
+                        errorElement.classList.add('hidden');
+                    } else if (targetPrice) {
+                        errorElement.classList.remove('hidden');
+                    }
+                }
+            }
+        }
+
+        function updateItemRequiredQuantity(listId, itemId, requiredQuantity) {
+            const list = lists.find(l => l.id === listId);
+            if (list) {
+                const item = list.items.find(i => i.productId === itemId);
+                if (item) {
+                    item.requiredQuantity = parseInt(requiredQuantity) || null;
+                    saveLists();
+                    
+                    // Validate and show/hide error
+                    const errorElement = document.querySelector(`.required-quantity-input[data-list-id="${listId}"][data-item-id="${itemId}"]`).nextElementSibling;
+                    if (requiredQuantity && parseInt(requiredQuantity) > 0) {
+                        errorElement.classList.add('hidden');
+                    } else if (requiredQuantity) {
+                        errorElement.classList.remove('hidden');
+                    }
+                }
+            }
+        }
+
+        function validateAndOpenQuoteModal(listId) {
+            const list = lists.find(l => l.id === listId);
+            if (!list) return;
+            
+            let isValid = true;
+            
+            // Validate all items in the list
+            list.items.forEach(item => {
+                const targetPriceInput = document.querySelector(`.target-price-input[data-list-id="${listId}"][data-item-id="${item.productId}"]`);
+                const requiredQuantityInput = document.querySelector(`.required-quantity-input[data-list-id="${listId}"][data-item-id="${item.productId}"]`);
+                const targetPriceError = targetPriceInput.nextElementSibling;
+                const requiredQuantityError = requiredQuantityInput.nextElementSibling;
+                
+                // Reset errors
+                targetPriceError.classList.add('hidden');
+                requiredQuantityError.classList.add('hidden');
+                
+                // Validate target price
+                if (!item.targetPrice || item.targetPrice <= 0) {
+                    targetPriceError.classList.remove('hidden');
+                    targetPriceInput.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    targetPriceInput.classList.remove('border-red-500');
+                }
+                
+                // Validate required quantity
+                if (!item.requiredQuantity || item.requiredQuantity <= 0) {
+                    requiredQuantityError.classList.remove('hidden');
+                    requiredQuantityInput.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    requiredQuantityInput.classList.remove('border-red-500');
+                }
+            });
+            
+            if (!isValid) {
+                showToast('Please fix validation errors before submitting the quote', 'error');
+                return;
+            }
+            
+            // If validation passes, open the quote modal
+            openQuoteModal(listId);
+        }
+
+        function openQuoteModal(listId) {
+            const list = lists.find(l => l.id === listId);
+            if (!list) return;
+            
+            // Populate quote summary
+            const quoteSummary = document.getElementById('quote-summary');
+            quoteSummary.innerHTML = '';
+            
+            let totalValue = 0;
+            
+            list.items.forEach(item => {
+                const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                if (product) {
+                    const itemValue = (item.targetPrice || 0) * (item.requiredQuantity || 0);
+                    totalValue += itemValue;
+                    
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'flex justify-between items-center py-2 border-b border-gray-200';
+                    itemElement.innerHTML = `
+                        <div class="min-w-0 flex-1">
+                            <div class="font-medium text-sm sm:text-base truncate">${product.partNumber}</div>
+                            <div class="text-gray-500 text-xs sm:text-sm truncate">${product.description}</div>
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-2">
+                            <div class="text-xs sm:text-sm">${item.requiredQuantity} × $${item.targetPrice?.toFixed(2) || '0.00'}</div>
+                            <div class="font-medium text-sm sm:text-base">$${itemValue.toFixed(2)}</div>
+                        </div>
+                    `;
+                    
+                    quoteSummary.appendChild(itemElement);
+                }
+            });
+            
+            // Add total
+            const totalElement = document.createElement('div');
+            totalElement.className = 'flex justify-between items-center py-2 font-bold text-base sm:text-lg';
+            totalElement.innerHTML = `
+                <div>Total Value</div>
+                <div>$${totalValue.toFixed(2)}</div>
+            `;
+            
+            quoteSummary.appendChild(totalElement);
+            
+            // Store the list ID for submission
+            quoteModal.setAttribute('data-list-id', listId);
+            
+            // Show modal
+            quoteModal.classList.remove('hidden');
+        }
+
+        function submitQuote() {
+            const listId = quoteModal.getAttribute('data-list-id');
+            const list = lists.find(l => l.id === listId);
+            
+            if (!list) return;
+            
+            // Get form data
+            const email = document.getElementById('quote-email').value;
+            const phone = document.getElementById('quote-phone').value;
+            const business = document.getElementById('quote-business').value;
+            const location = document.getElementById('quote-location').value;
+            const message = document.getElementById('quote-message').value;
+            
+            // Validate required fields
+            if (!location) {
+                showToast('Delivery location is required', 'error');
+                document.getElementById('quote-location').classList.add('border-red-500');
+                return;
+            }
+            
+            // Prepare payload
+            const payload = {
+                user: {
+                    email,
+                    phone,
+                    businessName: business
+                },
+                deliveryLocation: location,
+                message: message || null,
+                list: {
+                    id: list.id,
+                    name: list.name,
+                    items: list.items.map(item => {
+                        const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                        return {
+                            productId: item.productId,
+                            partNumber: product.partNumber,
+                            description: product.description,
+                            brand: product.brand,
+                            currentPrice: product.price,
+                            targetPrice: item.targetPrice,
+                            requiredQuantity: item.requiredQuantity
+                        };
+                    })
+                },
+                submittedAt: new Date().toISOString()
+            };
+            
+            // Show loading state
+            const submitButton = document.getElementById('submit-quote');
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Submitting...</span>';
+            submitButton.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Log payload to console (as requested)
+                console.log('Quote Submission Payload:', payload);
+                
+                // Show success message
+                showToast('Quote request submitted successfully!', 'success');
+                
+                // Reset quote mode
+                toggleQuoteMode(listId, false);
+                
+                // Close modal
+                quoteModal.classList.add('hidden');
+                
+                // Reset button
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            }, 1000);
+        }
+
+        // Utility Functions
+        function generateId() {
+            return 'id-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function saveLists() {
+            localStorage.setItem('arc-lists', JSON.stringify(lists));
+        }
+
+        function saveCart() {
+            localStorage.setItem('arc-cart', JSON.stringify(simulatedCart));
+        }
+
+        function showConfirmationModal(title, message, confirmCallback) {
+            document.getElementById('confirmation-title').textContent = title;
+            document.getElementById('confirmation-message').textContent = message;
+            pendingAction = confirmCallback;
+            confirmationModal.classList.remove('hidden');
+        }
+
+        function executePendingAction() {
+            if (pendingAction) {
+                pendingAction();
+                pendingAction = null;
+            }
+            confirmationModal.classList.add('hidden');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast bg-white rounded-lg shadow-lg border-l-4 p-3 sm:p-4 max-w-full sm:max-w-sm fade-in ${
+                type === 'success' ? 'border-green-500' : 
+                type === 'error' ? 'border-red-500' : 
+                'border-blue-500'
+            }`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-circle' : 
+                        'fa-info-circle';
+            
+            const iconColor = type === 'success' ? 'text-green-500' : 
+                            type === 'error' ? 'text-red-500' : 
+                            'text-blue-500';
+            
+            toast.innerHTML = `
+                <div class="flex items-start">
+                    <i class="fas ${icon} ${iconColor} mt-0.5 mr-3 text-sm sm:text-base"></i>
+                    <div class="flex-1">
+                        <p class="text-gray-800 text-sm sm:text-base">${message}</p>
+                    </div>
+                    <button class="toast-close ml-2 sm:ml-4 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Add close event
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.remove();
+            });
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
