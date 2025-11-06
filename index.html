@@ -157,6 +157,28 @@
                 display: none;
             }
         }
+        
+        /* Hover effects for list containers */
+        .list-container {
+            transition: all 0.3s ease;
+        }
+        
+        .list-container:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Min Qty badge styling */
+        .min-qty-badge {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -355,18 +377,18 @@
     <script>
         // Sample Data
         const SAMPLE_PRODUCTS = [
-            { id: 'P001', partNumber: 'ARC-001', description: 'High-performance microcontroller with advanced processing capabilities', brand: 'ARC Tech', price: 24.99, inventory: 'In Stock', stockQuantity: 150, imageUrl: './demo1.png' },
-            { id: 'P002', partNumber: 'ARC-002', description: 'Precision voltage regulator for stable power supply', brand: 'ARC Tech', price: 12.50, inventory: 'In Stock', stockQuantity: 200, imageUrl: './demo2.png' },
-            { id: 'P003', partNumber: 'ARC-003', description: 'High-speed data transmission module with low latency', brand: 'ARC Comms', price: 45.00, inventory: 'Low Stock', stockQuantity: 15, imageUrl: './demo3.png' },
-            { id: 'P004', partNumber: 'ARC-004', description: 'Industrial-grade temperature sensor with wide range', brand: 'ARC Sensors', price: 8.75, inventory: 'In Stock', stockQuantity: 300, imageUrl: './demo4.png' },
-            { id: 'P005', partNumber: 'ARC-005', description: 'Compact power supply unit with multiple output options', brand: 'ARC Power', price: 32.99, inventory: 'Out of Stock', stockQuantity: 0, imageUrl: './demo5.png' },
-            { id: 'P006', partNumber: 'ARC-006', description: 'Wireless communication module with extended range', brand: 'ARC Comms', price: 28.50, inventory: 'In Stock', stockQuantity: 75, imageUrl: './demo6.png' },
-            { id: 'P007', partNumber: 'ARC-007', description: 'High-precision analog-to-digital converter', brand: 'ARC Tech', price: null, inventory: 'Discontinued', stockQuantity: 0, imageUrl: './demo7.png' },
-            { id: 'P008', partNumber: 'ARC-008', description: 'Robotic actuator with position feedback', brand: 'ARC Motion', price: 67.25, inventory: 'In Stock', stockQuantity: 40, imageUrl: './demo8.png' },
-            { id: 'P009', partNumber: 'ARC-009', description: 'Multi-channel relay module for industrial control', brand: 'ARC Power', price: 22.99, inventory: 'Low Stock', stockQuantity: 8, imageUrl: './demo9.png' },
-            { id: 'P010', partNumber: 'ARC-010', description: 'Compact display module with touch interface', brand: 'ARC Display', price: 38.75, inventory: 'In Stock', stockQuantity: 120, imageUrl: './demo10.png' },
-            { id: 'P011', partNumber: 'ARC-011', description: 'Environmental sensor for humidity and pressure', brand: 'ARC Sensors', price: 19.99, inventory: 'In Stock', stockQuantity: 90, imageUrl: './demo11.png' },
-            { id: 'P012', partNumber: 'ARC-012', description: 'Signal conditioning module with filtering', brand: 'ARC Tech', price: 27.50, inventory: 'In Stock', stockQuantity: 60, imageUrl: './demo12.png' }
+            { id: 'P001', partNumber: 'ARC-001', description: 'High-performance microcontroller with advanced processing capabilities', brand: 'ARC Tech', price: 24.99, inventory: 'In Stock', stockQuantity: 150, minOrderQty: 10, imageUrl: './demo1.png' },
+            { id: 'P002', partNumber: 'ARC-002', description: 'Precision voltage regulator for stable power supply', brand: 'ARC Tech', price: 12.50, inventory: 'In Stock', stockQuantity: 200, minOrderQty: 25, imageUrl: './demo2.png' },
+            { id: 'P003', partNumber: 'ARC-003', description: 'High-speed data transmission module with low latency', brand: 'ARC Comms', price: 45.00, inventory: 'Low Stock', stockQuantity: 15, minOrderQty: 5, imageUrl: './demo3.png' },
+            { id: 'P004', partNumber: 'ARC-004', description: 'Industrial-grade temperature sensor with wide range', brand: 'ARC Sensors', price: 8.75, inventory: 'In Stock', stockQuantity: 300, minOrderQty: 50, imageUrl: './demo4.png' },
+            { id: 'P005', partNumber: 'ARC-005', description: 'Compact power supply unit with multiple output options', brand: 'ARC Power', price: 32.99, inventory: 'Out of Stock', stockQuantity: 0, minOrderQty: 10, imageUrl: './demo5.png' },
+            { id: 'P006', partNumber: 'ARC-006', description: 'Wireless communication module with extended range', brand: 'ARC Comms', price: 28.50, inventory: 'In Stock', stockQuantity: 75, minOrderQty: 15, imageUrl: './demo6.png' },
+            { id: 'P007', partNumber: 'ARC-007', description: 'High-precision analog-to-digital converter', brand: 'ARC Tech', price: null, inventory: 'Discontinued', stockQuantity: 0, minOrderQty: 0, imageUrl: './demo7.png' },
+            { id: 'P008', partNumber: 'ARC-008', description: 'Robotic actuator with position feedback', brand: 'ARC Motion', price: 67.25, inventory: 'In Stock', stockQuantity: 40, minOrderQty: 5, imageUrl: './demo8.png' },
+            { id: 'P009', partNumber: 'ARC-009', description: 'Multi-channel relay module for industrial control', brand: 'ARC Power', price: 22.99, inventory: 'Low Stock', stockQuantity: 8, minOrderQty: 10, imageUrl: './demo9.png' },
+            { id: 'P010', partNumber: 'ARC-010', description: 'Compact display module with touch interface', brand: 'ARC Display', price: 38.75, inventory: 'In Stock', stockQuantity: 120, minOrderQty: 20, imageUrl: './demo10.png' },
+            { id: 'P011', partNumber: 'ARC-011', description: 'Environmental sensor for humidity and pressure', brand: 'ARC Sensors', price: 19.99, inventory: 'In Stock', stockQuantity: 90, minOrderQty: 25, imageUrl: './demo11.png' },
+            { id: 'P012', partNumber: 'ARC-012', description: 'Signal conditioning module with filtering', brand: 'ARC Tech', price: 27.50, inventory: 'In Stock', stockQuantity: 60, minOrderQty: 15, imageUrl: './demo12.png' }
         ];
 
         const DEMO_USER = {
@@ -483,6 +505,18 @@
             `;
         }
 
+        // Min Qty display function
+        function getMinQtyDisplay(minOrderQty) {
+            if (minOrderQty <= 0) return '';
+            
+            return `
+                <div class="min-qty-badge mt-1">
+                    <i class="fas fa-box text-xs"></i>
+                    <span>Min Qty: ${minOrderQty}</span>
+                </div>
+            `;
+        }
+
         // Product Rendering - Responsive product cards with enhanced stock status
         function renderProducts() {
             productsGrid.innerHTML = '';
@@ -492,6 +526,7 @@
                 productCard.className = 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden fade-in';
                 
                 const stockStatusDisplay = getStockStatusDisplay(product.inventory, product.stockQuantity);
+                const minQtyDisplay = getMinQtyDisplay(product.minOrderQty);
                 
                 productCard.innerHTML = `
                     <div class="p-3 sm:p-4">
@@ -505,6 +540,7 @@
                         </div>
                         <h3 class="font-bold text-gray-800 text-sm sm:text-base">${product.partNumber}</h3>
                         <p class="text-gray-600 text-xs sm:text-sm mt-1 truncate-2-lines">${product.description}</p>
+                        ${minQtyDisplay}
                         <div class="flex justify-between items-center mt-2 sm:mt-3">
                             <span class="font-medium text-gray-800 text-sm sm:text-base">${product.price ? '$' + product.price.toFixed(2) : 'Price N/A'}</span>
                             <button class="add-to-list-btn bg-blue-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-lg text-xs sm:text-sm flex items-center space-x-1">
@@ -547,11 +583,16 @@
             
             lists.forEach((list, index) => {
                 const listElement = document.createElement('div');
-                listElement.className = 'bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6 fade-in';
+                listElement.className = 'list-container bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6 fade-in';
                 
                 const hasPurchasableItems = list.items.some(item => {
                     const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
                     return product && product.price && product.inventory !== 'Out of Stock' && product.inventory !== 'Discontinued';
+                });
+                
+                const hasNonPurchasableItems = list.items.some(item => {
+                    const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
+                    return !product || !product.price || product.inventory === 'Out of Stock' || product.inventory === 'Discontinued';
                 });
                 
                 const allPurchasableInCart = hasPurchasableItems && list.items.every(item => {
@@ -615,6 +656,7 @@
                                             if (!product) return '';
                                             
                                             const stockStatusDisplay = getStockStatusDisplay(product.inventory, product.stockQuantity);
+                                            const minQtyDisplay = getMinQtyDisplay(product.minOrderQty);
                                             const isInCart = simulatedCart.includes(item.productId);
                                             const isPurchasable = product.price && product.inventory !== 'Out of Stock' && product.inventory !== 'Discontinued';
                                             
@@ -628,6 +670,7 @@
                                                             <div class="min-w-0 flex-1">
                                                                 <div class="font-medium text-gray-800 text-sm">${product.partNumber}</div>
                                                                 <div class="text-gray-500 text-xs truncate">${product.description}</div>
+                                                                ${minQtyDisplay}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -675,6 +718,7 @@
                                     if (!product) return '';
                                     
                                     const stockStatusDisplay = getStockStatusDisplay(product.inventory, product.stockQuantity);
+                                    const minQtyDisplay = getMinQtyDisplay(product.minOrderQty);
                                     const isInCart = simulatedCart.includes(item.productId);
                                     const isPurchasable = product.price && product.inventory !== 'Out of Stock' && product.inventory !== 'Discontinued';
                                     
@@ -689,6 +733,7 @@
                                                         <div class="min-w-0 flex-1">
                                                             <h4 class="font-bold text-gray-800 text-sm truncate">${product.partNumber}</h4>
                                                             <p class="text-gray-600 text-xs mt-1 truncate-2-lines">${product.description}</p>
+                                                            ${minQtyDisplay}
                                                         </div>
                                                         <div class="ml-2 flex-shrink-0">
                                                             ${stockStatusDisplay}
@@ -746,11 +791,10 @@
                                         <span>Back to List</span>
                                     </button>
                                 ` : `
-                                    ${hasPurchasableItems ? (
-                                        allPurchasableInCart ? 
+                                    ${hasPurchasableItems && allPurchasableInCart && !hasNonPurchasableItems ? 
                                         '<span class="text-green-600 font-medium flex items-center text-sm sm:text-base justify-center sm:justify-start"><i class="fas fa-check mr-2"></i> All Items In Cart</span>' : 
                                         ''
-                                    ) : ''}
+                                    }
                                 `}
                             </div>
                             <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
@@ -767,7 +811,7 @@
                                         </button>
                                     ` : ''}
                                     ${allPurchasableInCart ? `
-                                        <button class="checkout-now-btn bg-green-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base justify-center" data-list-id="${list.id}">
+                                        <button class="checkout-now-btn bg-green-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base justify-center shadow-sm hover:shadow-md transition-shadow" data-list-id="${list.id}">
                                             <i class="fas fa-credit-card"></i>
                                             <span>Checkout Now</span>
                                         </button>
@@ -875,7 +919,7 @@
                 });
             });
             
-            // Checkout now
+            // Checkout now button
             document.querySelectorAll('.checkout-now-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const listId = this.getAttribute('data-list-id');
@@ -934,6 +978,7 @@
             // Populate product details
             const productDetails = document.getElementById('selected-product-details');
             const stockStatusDisplay = getStockStatusDisplay(selectedProduct.inventory, selectedProduct.stockQuantity);
+            const minQtyDisplay = getMinQtyDisplay(selectedProduct.minOrderQty);
             
             productDetails.innerHTML = `
                 <div class="flex items-center space-x-3">
@@ -943,6 +988,7 @@
                     <div class="min-w-0 flex-1">
                         <h4 class="font-bold text-gray-800 text-sm sm:text-base truncate">${selectedProduct.partNumber}</h4>
                         <p class="text-gray-600 text-xs sm:text-sm truncate">${selectedProduct.description}</p>
+                        ${minQtyDisplay}
                         <div class="flex items-center space-x-2 mt-1">
                             <span class="text-sm font-medium text-gray-800">${selectedProduct.price ? '$' + selectedProduct.price.toFixed(2) : 'Price N/A'}</span>
                             ${stockStatusDisplay}
@@ -1169,6 +1215,7 @@
                                 <th>Description</th>
                                 <th>Brand</th>
                                 <th>Price</th>
+                                <th>Min Qty</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -1185,6 +1232,7 @@
                             <td>${product.description}</td>
                             <td>${product.brand}</td>
                             <td>${product.price ? '$' + product.price.toFixed(2) : 'N/A'}</td>
+                            <td>${product.minOrderQty > 0 ? product.minOrderQty : 'N/A'}</td>
                             <td>${product.inventory} (${product.stockQuantity})</td>
                         </tr>
                     `;
@@ -1198,10 +1246,12 @@
                                 <td colspan="4" class="text-right font-bold">Total Value:</td>
                                 <td class="font-bold">$${totalValue.toFixed(2)}</td>
                                 <td></td>
+                                <td></td>
                             </tr>
                             <tr>
                                 <td colspan="4" class="text-right">Total Items:</td>
                                 <td>${list.items.length}</td>
+                                <td></td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -1227,7 +1277,7 @@
             let totalValue = 0;
             
             // Create CSV header
-            let csvContent = "Item No,Part Number,Description,Brand,Price,Inventory Status,Stock Quantity\n";
+            let csvContent = "Item No,Part Number,Description,Brand,Price,Min Qty,Inventory Status,Stock Quantity\n";
             
             // Add each item as a row
             list.items.forEach((item, index) => {
@@ -1243,6 +1293,7 @@
                         `"${product.description}"`,
                         `"${product.brand}"`,
                         product.price ? `"$${product.price.toFixed(2)}"` : '"N/A"',
+                        `"${product.minOrderQty > 0 ? product.minOrderQty : 'N/A'}"`,
                         `"${product.inventory}"`,
                         `"${product.stockQuantity}"`
                     ].join(',');
@@ -1252,8 +1303,8 @@
             });
             
             // Add total row
-            csvContent += `\n"","","","Total Value","$${totalValue.toFixed(2)}","",""\n`;
-            csvContent += `"","","","Total Items","${list.items.length}","",""`;
+            csvContent += `\n"","","","Total Value","$${totalValue.toFixed(2)}","","",""\n`;
+            csvContent += `"","","","Total Items","${list.items.length}","","",""`;
             
             // Create download link
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1437,6 +1488,7 @@
                         <div class="min-w-0 flex-1">
                             <div class="font-medium text-sm sm:text-base truncate">${product.partNumber}</div>
                             <div class="text-gray-500 text-xs sm:text-sm truncate">${product.description}</div>
+                            <div class="text-gray-400 text-xs">Min Qty: ${product.minOrderQty > 0 ? product.minOrderQty : 'N/A'}</div>
                         </div>
                         <div class="text-right flex-shrink-0 ml-2">
                             <div class="text-xs sm:text-sm">${item.requiredQuantity} × $${item.targetPrice?.toFixed(2) || '0.00'}</div>
@@ -1505,6 +1557,7 @@
                             description: product.description,
                             brand: product.brand,
                             currentPrice: product.price,
+                            minOrderQty: product.minOrderQty,
                             targetPrice: item.targetPrice,
                             requiredQuantity: item.requiredQuantity
                         };
